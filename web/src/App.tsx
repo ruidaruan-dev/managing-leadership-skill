@@ -2,17 +2,25 @@ import { useState } from 'react'
 import LeaderProfiler from '@/components/LeaderProfiler'
 import ScenarioAnalyzer from '@/components/ScenarioAnalyzer'
 import CommunicationDrafter from '@/components/CommunicationDrafter'
+import PetSystem from '@/components/PetSystem'
 
-type Tab = 'profiler' | 'scenario' | 'drafter'
+type Tab = 'profiler' | 'scenario' | 'drafter' | 'pet'
 
 const TABS: { id: Tab; label: string; icon: string; desc: string }[] = [
-  { id: 'profiler', label: '领导画像', icon: '🎭', desc: '匹配16种领导原型' },
+  { id: 'profiler', label: '领导画像', icon: '🎭', desc: '4×4原型矩阵' },
   { id: 'scenario', label: '场景分析', icon: '⚔️', desc: '10大职场困境策略' },
   { id: 'drafter', label: '沟通起草', icon: '✍️', desc: '定制化话术生成' },
+  { id: 'pet', label: '养宠物', icon: '🐾', desc: '驯化你的领导灵宠' },
 ]
 
 export default function App() {
   const [activeTab, setActiveTab] = useState<Tab>('profiler')
+  const [petPreSelectedId, setPetPreSelectedId] = useState<number | null>(null)
+
+  const handleNavigateToPet = (archetypeId: number) => {
+    setPetPreSelectedId(archetypeId)
+    setActiveTab('pet')
+  }
 
   return (
     <div className="min-h-screen">
@@ -32,7 +40,7 @@ export default function App() {
         <div className="relative container mx-auto px-4 pt-10 pb-8">
           <div className="max-w-3xl">
             <div className="flex items-center gap-2 mb-3">
-              <span className="text-xs font-mono uppercase tracking-widest text-cyber">Managing Leadership v1.0</span>
+              <span className="text-xs font-mono uppercase tracking-widest text-cyber">Managing Leadership v2.0</span>
               <span className="w-1.5 h-1.5 rounded-full bg-cyber animate-glow-pulse" />
             </div>
             <h1 className="text-4xl sm:text-5xl font-black mb-3 leading-tight">
@@ -41,7 +49,7 @@ export default function App() {
             </h1>
             <p className="text-base text-muted-foreground leading-relaxed max-w-2xl">
               在AI不断夺走人类工作的时代，聪明的程序员不是被AI替代的那个，而是用AI来管理自己领导的那个。
-              <span className="text-secondary-foreground">16种领导原型 × 10种职场困境 × 无限话术组合</span>，
+              <span className="text-secondary-foreground">16种领导原型 × 10种职场困境 × 灵宠养成系统</span>，
               让你的职场博弈从直觉升级为系统。
             </p>
           </div>
@@ -49,20 +57,20 @@ export default function App() {
 
         {/* Tab Navigation */}
         <div className="relative container mx-auto px-4">
-          <nav className="flex gap-1" role="tablist">
+          <nav className="flex gap-1 overflow-x-auto" role="tablist">
             {TABS.map(tab => (
               <button
                 key={tab.id}
                 role="tab"
                 aria-selected={activeTab === tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`group relative px-5 py-3 rounded-t-lg text-sm font-medium transition-all cursor-pointer ${
+                className={`group relative px-4 sm:px-5 py-3 rounded-t-lg text-sm font-medium transition-all cursor-pointer whitespace-nowrap ${
                   activeTab === tab.id
                     ? 'bg-card text-foreground border border-border border-b-transparent'
                     : 'text-muted-foreground hover:text-foreground hover:bg-card/50'
                 }`}
               >
-                <span className="mr-2">{tab.icon}</span>
+                <span className="mr-1.5">{tab.icon}</span>
                 <span>{tab.label}</span>
                 <span className="hidden sm:inline text-xs text-muted-foreground ml-2">
                   {tab.desc}
@@ -77,10 +85,11 @@ export default function App() {
       </header>
 
       {/* Main Content */}
-      <main className="container mx-auto px-4 py-8 max-w-4xl">
-        {activeTab === 'profiler' && <LeaderProfiler />}
+      <main className="container mx-auto px-4 py-8 max-w-5xl">
+        {activeTab === 'profiler' && <LeaderProfiler onNavigateToPet={handleNavigateToPet} />}
         {activeTab === 'scenario' && <ScenarioAnalyzer />}
         {activeTab === 'drafter' && <CommunicationDrafter />}
+        {activeTab === 'pet' && <PetSystem preSelectedId={petPreSelectedId} />}
       </main>
 
       {/* Footer */}

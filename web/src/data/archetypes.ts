@@ -1,3 +1,5 @@
+import type { GridCategory } from '@/types/pet'
+
 export type Ecosystem = 'soe' | 'private' | 'mnc' | 'tech'
 
 export interface LeaderArchetype {
@@ -21,6 +23,8 @@ export interface LeaderArchetype {
   keywords: string[]
   emoji: string
   dramaticIntro: string
+  gridCategory: GridCategory
+  portraitImage: string
 }
 
 export const ECOSYSTEMS: Record<Ecosystem, { label: string; color: string }> = {
@@ -38,13 +42,14 @@ export const ARCHETYPES: LeaderArchetype[] = [
     coreMotivation: '稳定、向上汇报质量、零事故',
     communicationStyle: '正式、间接、重流程。偏好书面汇报，会议用于宣布决定而非讨论',
     techAttitude: '技术应该"不出事就好"，对技术细节毫无兴趣',
-    aiAttitude: '谨慎型',  aiAttitudeLevel: 2,
+    aiAttitude: '谨慎型', aiAttitudeLevel: 2,
     faceSensitivity: '极高', faceSensitivityLevel: 5,
     weaknesses: ['无法验证技术复杂度', '恐惧技术事故', '完全依赖信任关系做技术判断'],
     strategies: ['汇报时强调"稳定可控"', '把请求包装成"确保上级满意"', '公开场合大力给面子', '永远不要让他在会上被突袭提问'],
     programmerLeverage: '最低', programmerLeverageLevel: 1,
     keywords: ['处长', '科长', '国企', '体制内', '编制', '流程'],
-    dramaticIntro: '此乃国企经典款处长，修炼多年的面子功夫已臻化境。在他的字典里，"没有问题"才是最好的汇报。'
+    dramaticIntro: '此乃国企经典款处长，修炼多年的面子功夫已臻化境。在他的字典里，"没有问题"才是最好的汇报。',
+    gridCategory: 'system', portraitImage: '/images/portraits/soe-system.png',
   },
   {
     id: 2, nameZh: '技术转行政型领导', nameEn: 'Technical-Turned-Administrative',
@@ -59,7 +64,8 @@ export const ARCHETYPES: LeaderArchetype[] = [
     strategies: ['把新技术包装成他过去工作的延伸', '偶尔请教他的"技术视角"', '永远不要直接否定他的技术建议，用"在您的基础上…"'],
     programmerLeverage: '中等', programmerLeverageLevel: 3,
     keywords: ['以前搞技术', '技术出身', '转管理'],
-    dramaticIntro: '曾经也是键盘上的战士，如今虽执掌行政大权，却始终怀念那段与代码共舞的岁月。请注意：他的技术自尊是你的通关密钥。'
+    dramaticIntro: '曾经也是键盘上的战士，如今虽执掌行政大权，却始终怀念那段与代码共舞的岁月。请注意：他的技术自尊是你的通关密钥。',
+    gridCategory: 'crosser', portraitImage: '/images/portraits/soe-crosser.png',
   },
   {
     id: 3, nameZh: '政治型领导', nameEn: 'Political Operator',
@@ -74,7 +80,8 @@ export const ARCHETYPES: LeaderArchetype[] = [
     strategies: ['成为他的"能力保险"', '用他的政治语言包装你的工作', '帮他向上看好，他会保护你', '小心分享信息——他会战略性使用一切'],
     programmerLeverage: '最低', programmerLeverageLevel: 1,
     keywords: ['关系户', '善于经营', '会来事', '政治敏感'],
-    dramaticIntro: '万花丛中过，片叶不沾身。每句话都是精心设计的棋子，每个决定都经过政治利弊计算。与他共事，你需要的不是代码能力，而是读懂空气的能力。'
+    dramaticIntro: '万花丛中过，片叶不沾身。每句话都是精心设计的棋子，每个决定都经过政治利弊计算。与他共事，你需要的不是代码能力，而是读懂空气的能力。',
+    gridCategory: 'power', portraitImage: '/images/portraits/soe-power.png',
   },
   {
     id: 4, nameZh: '混日子型领导', nameEn: 'Coasting Leader',
@@ -89,7 +96,8 @@ export const ARCHETYPES: LeaderArchetype[] = [
     strategies: ['利用他缺位创造的自主空间，但建立自己的保护网', '把所有请求包装成"维持现状"', '适合试验新技术——他不会干预'],
     programmerLeverage: '最低', programmerLeverageLevel: 1,
     keywords: ['快退休了', '不管事', '随便', '你们定'],
-    dramaticIntro: '一杯茶，一份报，等着退休的日子慢慢到。他不是你的对手，也不是你的盟友——他是一片你可以自由生长的荒地。但记住：当暴风雨来临时，他不会为你撑伞。'
+    dramaticIntro: '一杯茶，一份报，等着退休的日子慢慢到。他不是你的对手，也不是你的盟友——他是一片你可以自由生长的荒地。但记住：当暴风雨来临时，他不会为你撑伞。',
+    gridCategory: 'wildcard', portraitImage: '/images/portraits/soe-wildcard.png',
   },
   {
     id: 5, nameZh: '创始人/老板', nameEn: 'Founder-Boss',
@@ -104,7 +112,8 @@ export const ARCHETYPES: LeaderArchetype[] = [
     strategies: ['展示对公司使命的真诚热情', '用公司愿景包装技术决策', '用数据直接但不对抗地推回', '理解他的情绪周期'],
     programmerLeverage: '最高', programmerLeverageLevel: 5,
     keywords: ['老板', '创始人', 'CEO', '自己的公司'],
-    dramaticIntro: '这家公司就是他的孩子，他的战场，他的一切。在他面前，逻辑让位于热情，流程让位于直觉。你要做的不是说服他，而是让他觉得你们在同一条船上。'
+    dramaticIntro: '这家公司就是他的孩子，他的战场，他的一切。在他面前，逻辑让位于热情，流程让位于直觉。你要做的不是说服他，而是让他觉得你们在同一条船上。',
+    gridCategory: 'power', portraitImage: '/images/portraits/private-power.png',
   },
   {
     id: 6, nameZh: '职业经理人', nameEn: 'Professional Manager',
@@ -119,7 +128,8 @@ export const ARCHETYPES: LeaderArchetype[] = [
     strategies: ['把一切转化为指标和ROI', '帮他积累"成就组合"', '用数据反驳不可持续的要求', '与长期留任的同事建立关系'],
     programmerLeverage: '高', programmerLeverageLevel: 4,
     keywords: ['KPI', 'OKR', '职业经理人', 'MBA'],
-    dramaticIntro: '他带着MBA的光环和一套精美的PPT模板来到这里。在他眼中，你是一个产出机器，技术债是Excel表上可以被粉饰的数字。记住——他是过客，你才是主人。'
+    dramaticIntro: '他带着MBA的光环和一套精美的PPT模板来到这里。在他眼中，你是一个产出机器，技术债是Excel表上可以被粉饰的数字。记住——他是过客，你才是主人。',
+    gridCategory: 'system', portraitImage: '/images/portraits/private-system.png',
   },
   {
     id: 7, nameZh: '家族企业接班人', nameEn: 'Family Business Heir',
@@ -134,7 +144,8 @@ export const ARCHETYPES: LeaderArchetype[] = [
     strategies: ['成为他急需的可信赖顾问', '帮他建立合法性的可见成果', '用"现代化"包装你的技术提案', '尊重老臣同时助力革新'],
     programmerLeverage: '中等', programmerLeverageLevel: 3,
     keywords: ['接班', '二代', '家族企业', '少东家'],
-    dramaticIntro: '含着金钥匙出生，留学归来意气风发，却发现老臣们的目光比代码Review还犀利。他需要一个战友——一个能帮他用技术证明"我不是靠爹"的盟友。'
+    dramaticIntro: '含着金钥匙出生，留学归来意气风发，却发现老臣们的目光比代码Review还犀利。他需要一个战友——一个能帮他用技术证明"我不是靠爹"的盟友。',
+    gridCategory: 'crosser', portraitImage: '/images/portraits/private-crosser.png',
   },
   {
     id: 8, nameZh: '草根创业者', nameEn: 'Grassroots Entrepreneur',
@@ -149,7 +160,8 @@ export const ARCHETYPES: LeaderArchetype[] = [
     strategies: ['用交付赢得信任，不靠PPT', '说具体数字："省20万/年"', '忠诚且直接——他能闻到政治操弄', '逐步引入流程，包装为"保护生意"'],
     programmerLeverage: '最高', programmerLeverageLevel: 5,
     keywords: ['白手起家', '实干', '没读过什么书', '靠谱'],
-    dramaticIntro: '从摆地摊到盖大楼，他靠的不是学历而是那双看透人心的眼睛。在他面前，千行PPT不如一次靠谱的交付。获得他的信任，你就获得了铁壁般的保护。'
+    dramaticIntro: '从摆地摊到盖大楼，他靠的不是学历而是那双看透人心的眼睛。在他面前，千行PPT不如一次靠谱的交付。获得他的信任，你就获得了铁壁般的保护。',
+    gridCategory: 'wildcard', portraitImage: '/images/portraits/private-wildcard.png',
   },
   {
     id: 9, nameZh: '海归型VP', nameEn: 'Returnee VP',
@@ -164,7 +176,8 @@ export const ARCHETYPES: LeaderArchetype[] = [
     strategies: ['成为他的技术执行锚', '帮他桥接HQ方法论和本地现实', '用结构化、指标驱动的方式沟通'],
     programmerLeverage: '高', programmerLeverageLevel: 4,
     keywords: ['海归', '留学', 'VP', '国际化'],
-    dramaticIntro: '在硅谷镀过金，在陆家嘴扎过根。他是两个世界之间的桥梁，也是两个世界之间的夹心饼干。帮他做好这座桥，你就站在了桥的最佳位置。'
+    dramaticIntro: '在硅谷镀过金，在陆家嘴扎过根。他是两个世界之间的桥梁，也是两个世界之间的夹心饼干。帮他做好这座桥，你就站在了桥的最佳位置。',
+    gridCategory: 'crosser', portraitImage: '/images/portraits/mnc-crosser.png',
   },
   {
     id: 10, nameZh: '外籍高管', nameEn: 'Expat Executive',
@@ -179,7 +192,8 @@ export const ARCHETYPES: LeaderArchetype[] = [
     strategies: ['成为他需要的"文化翻译"', '用英语和结构化指标沟通', '帮他避免文化地雷'],
     programmerLeverage: '中等', programmerLeverageLevel: 3,
     keywords: ['老外', '外籍', 'expat', '不懂中文'],
-    dramaticIntro: '他带着一份全球模板和满腔"China is fascinating"的热情降落在这里。看不懂微信群里的暗流涌动，读不懂会议室里的欲言又止。谁能做他的解码器，谁就握住了通向核心圈子的钥匙。'
+    dramaticIntro: '他带着一份全球模板和满腔"China is fascinating"的热情降落在这里。看不懂微信群里的暗流涌动，读不懂会议室里的欲言又止。谁能做他的解码器，谁就握住了通向核心圈子的钥匙。',
+    gridCategory: 'wildcard', portraitImage: '/images/portraits/mnc-wildcard.png',
   },
   {
     id: 11, nameZh: '本土化高管', nameEn: 'Localized Executive',
@@ -194,7 +208,8 @@ export const ARCHETYPES: LeaderArchetype[] = [
     strategies: ['深化让本地运营不可替代的技术护城河', '帮他构建"中国特殊论"叙事', '不要成为可有可无的人'],
     programmerLeverage: '中等', programmerLeverageLevel: 3,
     keywords: ['外企老人', '本土化', '双语', 'bridge'],
-    dramaticIntro: '他是MNC体系里进化最完美的物种——在总部会议上谈数据，在本地饭局上拼酒量。不要低估他，这可能是你遇到的最难对付也最值得追随的领导类型。'
+    dramaticIntro: '他是MNC体系里进化最完美的物种——在总部会议上谈数据，在本地饭局上拼酒量。不要低估他，这可能是你遇到的最难对付也最值得追随的领导类型。',
+    gridCategory: 'power', portraitImage: '/images/portraits/mnc-power.png',
   },
   {
     id: 12, nameZh: '矩阵型汇报线领导', nameEn: 'Matrix Reporting Leader',
@@ -209,7 +224,8 @@ export const ARCHETYPES: LeaderArchetype[] = [
     strategies: ['你的请求必须能服务所有利益相关者', '帮他建共识："我已经和XX对齐过了"', '不要逼他在冲突中选边'],
     programmerLeverage: '中等', programmerLeverageLevel: 3,
     keywords: ['矩阵', '双线汇报', 'dotted line', 'solid line'],
-    dramaticIntro: '三个老板，五条汇报线，每天在对齐中度过。他不是在做决定，而是在找到让所有人都不反对的方案。在他手下工作，耐心是你最重要的装备。'
+    dramaticIntro: '三个老板，五条汇报线，每天在对齐中度过。他不是在做决定，而是在找到让所有人都不反对的方案。在他手下工作，耐心是你最重要的装备。',
+    gridCategory: 'system', portraitImage: '/images/portraits/mnc-system.png',
   },
   {
     id: 13, nameZh: '技术VP/CTO', nameEn: 'Tech Executive',
@@ -224,7 +240,8 @@ export const ARCHETYPES: LeaderArchetype[] = [
     strategies: ['用技术卓越赢得尊重——这是唯一货币', '用数据和原型挑战他的想法', '展示AI采纳的主动性', '准备充分的技术异议能赢得尊重'],
     programmerLeverage: '最高', programmerLeverageLevel: 5,
     keywords: ['CTO', '技术VP', '架构', '技术驱动'],
-    dramaticIntro: '从IC一路杀到C-level，他的GitHub还在保持绿色。在他面前，PPT是垃圾，Working Code是圣经。你的代码质量就是你的名片，你的架构理解就是你的通行证。'
+    dramaticIntro: '从IC一路杀到C-level，他的GitHub还在保持绿色。在他面前，PPT是垃圾，Working Code是圣经。你的代码质量就是你的名片，你的架构理解就是你的通行证。',
+    gridCategory: 'power', portraitImage: '/images/portraits/tech-power.png',
   },
   {
     id: 14, nameZh: '产品型领导', nameEn: 'Product Leader',
@@ -239,7 +256,8 @@ export const ARCHETYPES: LeaderArchetype[] = [
     strategies: ['用产品影响力翻译技术工作："重构让功能上线快30%"', '推回排期时提议缩减范围而非延长时间', '帮他理解AI的真实成本'],
     programmerLeverage: '最高', programmerLeverageLevel: 5,
     keywords: ['产品', 'PM', 'DAU', 'sprint', '迭代'],
-    dramaticIntro: '他的脑子里装着一个永远在倒计时的Sprint看板。对他来说，完美的代码不如按时上线的代码，99%的测试覆盖率不如1%的DAU增长。学会用他的语言——数据——来争取你需要的东西。'
+    dramaticIntro: '他的脑子里装着一个永远在倒计时的Sprint看板。对他来说，完美的代码不如按时上线的代码，99%的测试覆盖率不如1%的DAU增长。学会用他的语言——数据——来争取你需要的东西。',
+    gridCategory: 'system', portraitImage: '/images/portraits/tech-system.png',
   },
   {
     id: 15, nameZh: '空降型高管', nameEn: 'Parachuted Executive',
@@ -254,7 +272,8 @@ export const ARCHETYPES: LeaderArchetype[] = [
     strategies: ['早期识别他的变革议程并对齐', '把可行性评估包装为"如何实现您的愿景"', '保护关键系统免受破坏性变革', '成为早期支持者获得有利位置'],
     programmerLeverage: '高', programmerLeverageLevel: 4,
     keywords: ['空降', '新来的', '在XX的时候', '新官上任'],
-    dramaticIntro: '带着前东家的荣光和一套"已被证明的方法论"从天而降。他急需证明自己的价值，而你的代码库是他的实验田。在他翻地之前，确保你的根扎得够深。'
+    dramaticIntro: '带着前东家的荣光和一套"已被证明的方法论"从天而降。他急需证明自己的价值，而你的代码库是他的实验田。在他翻地之前，确保你的根扎得够深。',
+    gridCategory: 'crosser', portraitImage: '/images/portraits/tech-crosser.png',
   },
   {
     id: 16, nameZh: '内卷推动者', nameEn: 'Involution Driver',
@@ -269,7 +288,8 @@ export const ARCHETYPES: LeaderArchetype[] = [
     strategies: ['可见地使用AI展示生产力', '用选择题代替开放题："做A还是B？"', '记录一切——高压环境甩锅概率极高', '准备退出策略——这种模式必然导致burnout'],
     programmerLeverage: '最低', programmerLeverageLevel: 1,
     keywords: ['996', '卷', '又加班', '什么时候能完'],
-    dramaticIntro: '他是内卷的化身，996的代言人。在他的字典里，"高效"意味着更多加班，"优化"意味着砍人。面对他，你的AI武器不是用来写代码的——是用来保命的。'
+    dramaticIntro: '他是内卷的化身，996的代言人。在他的字典里，"高效"意味着更多加班，"优化"意味着砍人。面对他，你的AI武器不是用来写代码的——是用来保命的。',
+    gridCategory: 'wildcard', portraitImage: '/images/portraits/tech-wildcard.png',
   },
 ]
 
@@ -294,7 +314,6 @@ export function matchArchetypes(
       if (matched > 0) {
         score += Math.min(0.4, matched * 0.15)
       }
-      // Also check against nameZh and dramaticIntro
       const textMatch = keywords.filter(kw =>
         archetype.nameZh.includes(kw) || archetype.coreMotivation.includes(kw)
       ).length
