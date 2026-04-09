@@ -4,6 +4,7 @@ import ScenarioAnalyzer from '@/components/ScenarioAnalyzer'
 import CommunicationDrafter from '@/components/CommunicationDrafter'
 import PetSystem from '@/components/PetSystem'
 import RelationshipNetwork from '@/components/RelationshipNetwork'
+import { useLeaderNetwork } from '@/hooks/useLeaderNetwork'
 
 type Tab = 'profiler' | 'scenario' | 'drafter' | 'pet' | 'network'
 
@@ -108,7 +109,7 @@ export default function App() {
       {/* Main Content */}
       <main className="container mx-auto px-4 py-8 max-w-5xl">
         {activeTab === 'profiler' && <LeaderProfiler onNavigateToPet={handleNavigateToPet} />}
-        {activeTab === 'scenario' && <ScenarioAnalyzer />}
+        {activeTab === 'scenario' && <ScenarioAnalyzer leaders={useLeaderNetwork().leaders} />}
         {activeTab === 'drafter' && <CommunicationDrafter prefillContext={crossContext.draftContext} />}
         {activeTab === 'pet' && <PetSystem preSelectedId={petPreSelectedId} />}
         {activeTab === 'network' && <RelationshipNetwork onNavigateToDrafter={handleNavigateToDrafter} />}
