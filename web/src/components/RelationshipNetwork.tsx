@@ -125,6 +125,16 @@ const PRIORITY_CONFIG: Record<TaskPriority, { label: string; color: string }> = 
   low:    { label: '普通', color: 'text-muted-foreground border-border bg-muted/30' },
 }
 
+// 互动目标 → 沟通起草场景映射
+const GOAL_TO_COMM_SCENARIO: Record<InteractionGoal, string | null> = {
+  align:     null,       // 对齐目标 → 无直接对应
+  report:    'delay',    // 汇报进展 → 汇报项目延期
+  request:   'resource', // 申请资源 → 争取资源/HC
+  build:     'onboard',  // 关系建设 → 自我介绍（最近）
+  repair:    'bad-news', // 修复关系 → 传递坏消息（道歉场景）
+  negotiate: 'pushback', // 谈判协商 → 推回不合理需求
+}
+
 const STRATEGY_SUGGESTIONS: Record<InteractionGoal, string[]> = {
   align:     ['先询问领导对项目的核心关切，再表达自己的目标', '用他的语言和优先级重新表述你的诉求', '提前准备2-3个可选方案，让他有选择感'],
   report:    ['以影响和结论开头，细节按需展开', '准备一句话摘要，以防只有30秒汇报时间', '提前预判他会问的3个问题并备好答案'],
@@ -803,15 +813,18 @@ function RelStats({ leaders, tasks }: { leaders: LeaderNode[]; tasks: Interactio
   )
 }
 
-function DashTaskRow({ task, leaderName, onLeaderClick, onComplete }: {
+function DashTaskRow({ task, leaderName, leaderArchetypeId, onLeaderClick, onComplete, onGenerateDraft }: {
   task: InteractionTask
   leaderName: string
+  leaderArchetypeId: number | null
   onLeaderClick: () => void
   onComplete: () => void
+  onGenerateDraft?: () => void
 }) {
   const goal = GOAL_CONFIG[task.goal]
   const priority = PRIORITY_CONFIG[task.priority]
   const isOverdue = new Date(task.scheduledAt) < new Date()
+  const commScenario = GOAL_TO_COMM_SCENARIO[task.goal]
 
   return (
     <div className={`flex items-center gap-3 p-3 rounded-xl border transition-all ${isOverdue ? 'border-red-400/30 bg-red-400/5' : 'border-border bg-card hover:border-[hsl(var(--gold)/0.3)]'}`}>
@@ -830,6 +843,15 @@ function DashTaskRow({ task, leaderName, onLeaderClick, onComplete }: {
         </div>
       </div>
       <div className="flex items-center gap-2 shrink-0">
+        {leaderArchetypeId && commScenario && onGenerateDraft && (
+          <button
+            onClick={(e) => { e.stopPropagation(); onGenerateDraft() }}
+            className="text-[10px] px-2 py-1 rounded border border-[hsl(var(--cyber))/40] text-[hsl(var(--cyber))] hover:bg-[hsl(var(--cyber)/0.1)] transition-colors cursor-pointer"
+            title="根据领导类型自动生成话术"
+          >
+            📝 话术
+          </button>
+        )}
         <span className={`text-[10px] px-1.5 py-0.5 rounded border ${priority.color}`}>{priority.label}</span>
         <span className={`text-[10px] font-medium ${isOverdue ? 'text-red-400' : 'text-muted-foreground'}`}>
           {formatDate(task.scheduledAt)}
@@ -844,11 +866,13 @@ function DashboardView({
   tasks,
   onSelectLeader,
   onCompleteTask,
+  onNavigateToDrafter,
 }: {
   leaders: LeaderNode[]
   tasks: InteractionTask[]
   onSelectLeader: (id: string) => void
   onCompleteTask: (id: string) => void
+  onNavigateToDrafter?: (archetypeId: number, leaderName: string, scenarioId?: string) => void
 }) {
   const leaderMap = new Map(leaders.map(l => [l.id, l]))
   const pending = tasks
@@ -891,8 +915,11 @@ function DashboardView({
               const l = leaderMap.get(t.leaderId)
               return (
                 <DashTaskRow key={t.id} task={t} leaderName={l?.name ?? '?'}
+                  leaderArchetypeId={l?.archetypeId ?? null}
                   onLeaderClick={() => l && onSelectLeader(l.id)}
-                  onComplete={() => onCompleteTask(t.id)} />
+                  onComplete={() => onCompleteTask(t.id)}
+                  onGenerateDraft={l?.archetypeId ? () => onNavigateToDrafter?.(l.archetypeId!, l.name, GOAL_TO_COMM_SCENARIO[t.goal] ?? undefined) : undefined}
+                />
               )
             })}
           </div>
@@ -910,8 +937,11 @@ function DashboardView({
               const l = leaderMap.get(t.leaderId)
               return (
                 <DashTaskRow key={t.id} task={t} leaderName={l?.name ?? '?'}
+                  leaderArchetypeId={l?.archetypeId ?? null}
                   onLeaderClick={() => l && onSelectLeader(l.id)}
-                  onComplete={() => onCompleteTask(t.id)} />
+                  onComplete={() => onCompleteTask(t.id)}
+                  onGenerateDraft={l?.archetypeId ? () => onNavigateToDrafter?.(l.archetypeId!, l.name, GOAL_TO_COMM_SCENARIO[t.goal] ?? undefined) : undefined}
+                />
               )
             })}
           </div>
@@ -925,7 +955,7 @@ function DashboardView({
 
 type NetworkTab = 'dashboard' | 'leaders'
 
-export default function RelationshipNetwork() {
+export default function RelationshipNetwork({ onNavigateToDrafter }: { onNavigateToDrafter?: (archetypeId: number, leaderName: string, scenarioId?: string) => void }) {
   const { leaders, tasks, addLeader, updateLeader, deleteLeader, addTask, completeTask, deleteTask } = useLeaderNetwork()
   const [tab, setTab] = useState<NetworkTab>('dashboard')
   const [addingLeader, setAddingLeader] = useState(false)
@@ -976,6 +1006,7 @@ export default function RelationshipNetwork() {
           tasks={tasks}
           onSelectLeader={handleSelectLeader}
           onCompleteTask={completeTask}
+          onNavigateToDrafter={onNavigateToDrafter}
         />
       )}
 

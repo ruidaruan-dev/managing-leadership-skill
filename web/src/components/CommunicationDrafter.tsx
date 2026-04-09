@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { ARCHETYPES, ECOSYSTEMS, type Ecosystem, type LeaderArchetype } from '@/data/archetypes'
 
 const COMM_SCENARIOS = [
@@ -102,7 +102,13 @@ function generateDraft(archetype: LeaderArchetype, scenario: CommScenario): { su
   return gen ? gen(archetype) : { subject: '沟通主题', body: '请选择具体场景', annotations: [] }
 }
 
-export default function CommunicationDrafter() {
+export interface DrafterPrefillContext {
+  archetypeId: number
+  leaderName: string
+  scenarioId?: string
+}
+
+export default function CommunicationDrafter({ prefillContext }: { prefillContext?: DrafterPrefillContext }) {
   const [selectedEco, setSelectedEco] = useState<Ecosystem | null>(null)
   const [selectedArchetype, setSelectedArchetype] = useState<LeaderArchetype | null>(null)
   const [selectedScenario, setSelectedScenario] = useState<CommScenario | null>(null)
@@ -111,6 +117,20 @@ export default function CommunicationDrafter() {
   const filteredArchetypes = selectedEco
     ? ARCHETYPES.filter(a => a.ecosystem === selectedEco)
     : ARCHETYPES
+
+  // 初始化：如果有预填上下文，自动选择对应的原型和场景
+  useEffect(() => {
+    if (prefillContext) {
+      const arch = ARCHETYPES.find(a => a.id === prefillContext.archetypeId)
+      if (arch) {
+        setSelectedArchetype(arch)
+        setSelectedEco(arch.ecosystem)
+      }
+      if (prefillContext.scenarioId) {
+        setSelectedScenario(prefillContext.scenarioId as CommScenario)
+      }
+    }
+  }, [prefillContext])
 
   function handleGenerate() {
     if (!selectedArchetype || !selectedScenario) return

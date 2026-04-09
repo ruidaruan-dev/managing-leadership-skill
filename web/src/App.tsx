@@ -7,6 +7,16 @@ import RelationshipNetwork from '@/components/RelationshipNetwork'
 
 type Tab = 'profiler' | 'scenario' | 'drafter' | 'pet' | 'network'
 
+// 跨模块上下文：用于模块间传递状态
+export interface CrossModuleContext {
+  // 从关系网络跳转到沟通起草的上下文
+  draftContext?: {
+    archetypeId: number
+    leaderName: string
+    scenarioId?: string // CommunicationDrafter的场景ID
+  }
+}
+
 const TABS: { id: Tab; label: string; icon: string; desc: string }[] = [
   { id: 'network',   label: '关系网络', icon: '🗂️', desc: '人员关系管理' },
   { id: 'profiler',  label: '领导画像', icon: '🎭', desc: '4×4原型矩阵' },
@@ -18,10 +28,19 @@ const TABS: { id: Tab; label: string; icon: string; desc: string }[] = [
 export default function App() {
   const [activeTab, setActiveTab] = useState<Tab>('profiler')
   const [petPreSelectedId, setPetPreSelectedId] = useState<number | null>(null)
+  const [crossContext, setCrossContext] = useState<CrossModuleContext>({})
 
   const handleNavigateToPet = (archetypeId: number) => {
     setPetPreSelectedId(archetypeId)
     setActiveTab('pet')
+  }
+
+  // 从关系网络跳转到沟通起草
+  const handleNavigateToDrafter = (archetypeId: number, leaderName: string, scenarioId?: string) => {
+    setCrossContext({
+      draftContext: { archetypeId, leaderName, scenarioId }
+    })
+    setActiveTab('drafter')
   }
 
   return (
@@ -90,9 +109,9 @@ export default function App() {
       <main className="container mx-auto px-4 py-8 max-w-5xl">
         {activeTab === 'profiler' && <LeaderProfiler onNavigateToPet={handleNavigateToPet} />}
         {activeTab === 'scenario' && <ScenarioAnalyzer />}
-        {activeTab === 'drafter' && <CommunicationDrafter />}
+        {activeTab === 'drafter' && <CommunicationDrafter prefillContext={crossContext.draftContext} />}
         {activeTab === 'pet' && <PetSystem preSelectedId={petPreSelectedId} />}
-        {activeTab === 'network' && <RelationshipNetwork />}
+        {activeTab === 'network' && <RelationshipNetwork onNavigateToDrafter={handleNavigateToDrafter} />}
       </main>
 
       {/* Footer */}
