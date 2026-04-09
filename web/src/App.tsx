@@ -3,14 +3,16 @@ import LeaderProfiler from '@/components/LeaderProfiler'
 import ScenarioAnalyzer from '@/components/ScenarioAnalyzer'
 import CommunicationDrafter from '@/components/CommunicationDrafter'
 import PetSystem from '@/components/PetSystem'
+import RelationshipNetwork from '@/components/RelationshipNetwork'
 
-type Tab = 'profiler' | 'scenario' | 'drafter' | 'pet'
+type Tab = 'profiler' | 'scenario' | 'drafter' | 'pet' | 'network'
 
 const TABS: { id: Tab; label: string; icon: string; desc: string }[] = [
-  { id: 'profiler', label: '领导画像', icon: '🎭', desc: '4×4原型矩阵' },
-  { id: 'scenario', label: '场景分析', icon: '⚔️', desc: '10大职场困境策略' },
-  { id: 'drafter', label: '沟通起草', icon: '✍️', desc: '定制化话术生成' },
-  { id: 'pet', label: '养宠物', icon: '🐾', desc: '驯化你的领导灵宠' },
+  { id: 'network',   label: '关系网络', icon: '🗂️', desc: '人员关系管理' },
+  { id: 'profiler',  label: '领导画像', icon: '🎭', desc: '4×4原型矩阵' },
+  { id: 'scenario',  label: '场景分析', icon: '⚔️', desc: '10大职场困境策略' },
+  { id: 'drafter',   label: '沟通起草', icon: '✍️', desc: '定制化话术生成' },
+  { id: 'pet',       label: '养宠物',   icon: '🐾', desc: '驯化你的领导灵宠' },
 ]
 
 export default function App() {
@@ -90,6 +92,7 @@ export default function App() {
         {activeTab === 'scenario' && <ScenarioAnalyzer />}
         {activeTab === 'drafter' && <CommunicationDrafter />}
         {activeTab === 'pet' && <PetSystem preSelectedId={petPreSelectedId} />}
+        {activeTab === 'network' && <RelationshipNetwork />}
       </main>
 
       {/* Footer */}
