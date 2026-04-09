@@ -2,6 +2,7 @@ export type RelationshipLevel = 'close' | 'normal' | 'cautious' | 'tense'
 export type InteractionGoal = 'align' | 'report' | 'request' | 'build' | 'repair' | 'negotiate'
 export type TaskStatus = 'pending' | 'done' | 'cancelled'
 export type TaskPriority = 'high' | 'medium' | 'low'
+export type InteractionOutcome = 'excellent' | 'good' | 'average' | 'poor'
 
 export interface PersonalityTrait {
   key: string
@@ -37,4 +38,8 @@ export interface InteractionTask {
   priority: TaskPriority
   createdAt: string
   completedAt?: string
+  // 互动日志字段
+  outcome?: InteractionOutcome // 效果评估
+  actualResult?: string // 实际发生了什么
+  lessonsLearned?: string // 学到的规律
 }

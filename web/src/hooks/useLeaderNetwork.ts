@@ -1,5 +1,5 @@
 import { useLocalStorage } from './useLocalStorage'
-import type { LeaderNode, InteractionTask } from '@/types/network'
+import type { LeaderNode, InteractionTask, InteractionOutcome } from '@/types/network'
 
 export function useLeaderNetwork() {
   const [leaders, setLeaders] = useLocalStorage<LeaderNode[]>('leader-network-nodes', [])
@@ -49,6 +49,10 @@ export function useLeaderNetwork() {
     updateTask(id, { status: 'done', completedAt: new Date().toISOString() })
   }
 
+  const logTaskOutcome = (id: string, data: { outcome: InteractionOutcome; actualResult: string; lessonsLearned: string }) => {
+    updateTask(id, data)
+  }
+
   return {
     leaders,
     tasks,
@@ -59,5 +63,6 @@ export function useLeaderNetwork() {
     updateTask,
     deleteTask,
     completeTask,
+    logTaskOutcome,
   }
 }

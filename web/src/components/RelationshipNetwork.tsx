@@ -1,7 +1,7 @@
 import { useState, useMemo, useEffect } from 'react'
 import { useLeaderNetwork } from '@/hooks/useLeaderNetwork'
 import { ARCHETYPES } from '@/data/archetypes'
-import type { LeaderNode, InteractionTask, RelationshipLevel, InteractionGoal, TaskPriority } from '@/types/network'
+import type { LeaderNode, InteractionTask, RelationshipLevel, InteractionGoal, TaskPriority, InteractionOutcome } from '@/types/network'
 
 // ─── 预设模板 ────────────────────────────────────────────────────────────────
 
@@ -171,6 +171,114 @@ function EmptyState({ icon, title, desc }: { icon: string; title: string; desc: 
       <span className="text-5xl mb-4">{icon}</span>
       <p className="text-base font-semibold text-foreground mb-1">{title}</p>
       <p className="text-sm text-muted-foreground">{desc}</p>
+    </div>
+  )
+}
+
+// ─── Task Outcome Modal ───────────────────────────────────────────────────────
+
+const OUTCOME_CONFIG: Record<InteractionOutcome, { label: string; emoji: string; color: string }> = {
+  excellent: { label: '非常顺利', emoji: '🎉', color: 'text-emerald-400 border-emerald-400 bg-emerald-400/10' },
+  good: { label: '比较顺利', emoji: '👍', color: 'text-[hsl(var(--cyber))] border-[hsl(var(--cyber))] bg-[hsl(var(--cyber))/0.1]' },
+  average: { label: '一般般', emoji: '😐', color: 'text-amber-400 border-amber-400 bg-amber-400/10' },
+  poor: { label: '不太顺利', emoji: '😰', color: 'text-red-400 border-red-400 bg-red-400/10' },
+}
+
+function TaskOutcomeModal({
+  taskTitle,
+  onSubmit,
+  onClose,
+}: {
+  taskTitle: string
+  onSubmit: (data: { outcome: InteractionOutcome; actualResult: string; lessonsLearned: string }) => void
+  onClose: () => void
+}) {
+  const [form, setForm] = useState({
+    outcome: 'good' as InteractionOutcome,
+    actualResult: '',
+    lessonsLearned: '',
+  })
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    onSubmit(form)
+  }
+
+  return (
+    <div className="fixed inset-0 z-[60] flex items-end sm:items-center justify-center" onClick={onClose}>
+      <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" />
+      <div
+        className="relative w-full max-w-lg max-h-[90vh] overflow-y-auto bg-card border border-border rounded-t-2xl sm:rounded-2xl p-5 animate-slide-up"
+        onClick={e => e.stopPropagation()}
+      >
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-lg font-bold text-foreground">📝 记录互动结果</h3>
+          <button onClick={onClose} className="text-muted-foreground hover:text-foreground text-xl cursor-pointer">&times;</button>
+        </div>
+
+        <p className="text-sm text-muted-foreground mb-4">任务：<span className="text-foreground font-medium">{taskTitle}</span></p>
+
+        <form onSubmit={handleSubmit} className="space-y-4">
+          {/* 效果评估 */}
+          <div>
+            <p className="text-xs font-semibold text-[hsl(var(--gold))] mb-2 uppercase tracking-wider">这次互动效果如何？</p>
+            <div className="grid grid-cols-2 gap-2">
+              {(Object.entries(OUTCOME_CONFIG) as [InteractionOutcome, typeof OUTCOME_CONFIG[InteractionOutcome]][]).map(([key, val]) => (
+                <button
+                  key={key}
+                  type="button"
+                  onClick={() => setForm(f => ({ ...f, outcome: key }))}
+                  className={`p-3 rounded-lg border text-sm transition-all cursor-pointer ${
+                    form.outcome === key
+                      ? `${val.color} border-2`
+                      : 'border-border hover:border-border/80'
+                  }`}
+                >
+                  <span className="text-lg mr-1">{val.emoji}</span>
+                  <span>{val.label}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* 实际发生了什么 */}
+          <div>
+            <label className="text-xs text-muted-foreground mb-1 block">实际发生了什么？（选填）</label>
+            <textarea
+              value={form.actualResult}
+              onChange={e => setForm(f => ({ ...f, actualResult: e.target.value }))}
+              rows={3}
+              placeholder="领导当场同意了，但要求补充详细方案..."
+              className="input-field w-full resize-none"
+            />
+          </div>
+
+          {/* 学到的规律 */}
+          <div>
+            <label className="text-xs text-muted-foreground mb-1 block">你学到了什么规律？（选填）</label>
+            <textarea
+              value={form.lessonsLearned}
+              onChange={e => setForm(f => ({ ...f, lessonsLearned: e.target.value }))}
+              rows={2}
+              placeholder="张总喜欢先看结论，细节他会在后面问..."
+              className="input-field w-full resize-none"
+            />
+          </div>
+
+          <div className="flex gap-3 pt-2">
+            <button type="submit" className="btn-gold flex-1 py-2.5 rounded-lg text-sm font-bold">
+              ✅ 保存记录
+            </button>
+            <button
+              type="button"
+              onClick={onClose}
+              className="flex-1 py-2.5 rounded-lg text-sm border border-border text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+            >
+              跳过
+            </button>
+          </div>
+        </form>
+      </div>
     </div>
   )
 }
@@ -867,12 +975,14 @@ function DashboardView({
   onSelectLeader,
   onCompleteTask,
   onNavigateToDrafter,
+  onLogTaskOutcome,
 }: {
   leaders: LeaderNode[]
   tasks: InteractionTask[]
   onSelectLeader: (id: string) => void
   onCompleteTask: (id: string) => void
   onNavigateToDrafter?: (archetypeId: number, leaderName: string, scenarioId?: string) => void
+  onLogTaskOutcome?: (id: string, data: { outcome: InteractionOutcome; actualResult: string; lessonsLearned: string }) => void
 }) {
   const leaderMap = new Map(leaders.map(l => [l.id, l]))
   const pending = tasks
@@ -885,6 +995,28 @@ function DashboardView({
 
   const overdue = pending.filter(t => new Date(t.scheduledAt) < new Date())
   const upcoming = pending.filter(t => new Date(t.scheduledAt) >= new Date())
+
+  // 任务日志弹窗状态
+  const [loggingTaskId, setLoggingTaskId] = useState<string | null>(null)
+  const loggingTask = loggingTaskId ? tasks.find(t => t.id === loggingTaskId) : null
+
+  const handleCompleteTask = (id: string) => {
+    if (onLogTaskOutcome) {
+      // 弹出日志记录弹窗
+      setLoggingTaskId(id)
+    } else {
+      // 直接完成
+      onCompleteTask(id)
+    }
+  }
+
+  const handleLogSubmit = (data: { outcome: InteractionOutcome; actualResult: string; lessonsLearned: string }) => {
+    if (loggingTaskId) {
+      onLogTaskOutcome?.(loggingTaskId, data)
+      onCompleteTask(loggingTaskId)
+      setLoggingTaskId(null)
+    }
+  }
 
   if (leaders.length === 0) {
     return (
@@ -917,7 +1049,7 @@ function DashboardView({
                 <DashTaskRow key={t.id} task={t} leaderName={l?.name ?? '?'}
                   leaderArchetypeId={l?.archetypeId ?? null}
                   onLeaderClick={() => l && onSelectLeader(l.id)}
-                  onComplete={() => onCompleteTask(t.id)}
+                  onComplete={() => handleCompleteTask(t.id)}
                   onGenerateDraft={l?.archetypeId ? () => onNavigateToDrafter?.(l.archetypeId!, l.name, GOAL_TO_COMM_SCENARIO[t.goal] ?? undefined) : undefined}
                 />
               )
@@ -939,13 +1071,22 @@ function DashboardView({
                 <DashTaskRow key={t.id} task={t} leaderName={l?.name ?? '?'}
                   leaderArchetypeId={l?.archetypeId ?? null}
                   onLeaderClick={() => l && onSelectLeader(l.id)}
-                  onComplete={() => onCompleteTask(t.id)}
+                  onComplete={() => handleCompleteTask(t.id)}
                   onGenerateDraft={l?.archetypeId ? () => onNavigateToDrafter?.(l.archetypeId!, l.name, GOAL_TO_COMM_SCENARIO[t.goal] ?? undefined) : undefined}
                 />
               )
             })}
           </div>
         </div>
+      )}
+
+      {/* 任务日志弹窗 */}
+      {loggingTask && (
+        <TaskOutcomeModal
+          taskTitle={loggingTask.title}
+          onSubmit={handleLogSubmit}
+          onClose={() => setLoggingTaskId(null)}
+        />
       )}
     </div>
   )
@@ -956,7 +1097,7 @@ function DashboardView({
 type NetworkTab = 'dashboard' | 'leaders'
 
 export default function RelationshipNetwork({ onNavigateToDrafter, preselectedArchetypeId }: { onNavigateToDrafter?: (archetypeId: number, leaderName: string, scenarioId?: string) => void; preselectedArchetypeId?: number }) {
-  const { leaders, tasks, addLeader, updateLeader, deleteLeader, addTask, completeTask, deleteTask } = useLeaderNetwork()
+  const { leaders, tasks, addLeader, updateLeader, deleteLeader, addTask, completeTask, deleteTask, logTaskOutcome } = useLeaderNetwork()
   const [tab, setTab] = useState<NetworkTab>('dashboard')
   const [addingLeader, setAddingLeader] = useState(false)
   const [selectedLeaderId, setSelectedLeaderId] = useState<string | null>(null)
@@ -1015,6 +1156,7 @@ export default function RelationshipNetwork({ onNavigateToDrafter, preselectedAr
           onSelectLeader={handleSelectLeader}
           onCompleteTask={completeTask}
           onNavigateToDrafter={onNavigateToDrafter}
+          onLogTaskOutcome={logTaskOutcome}
         />
       )}
 
