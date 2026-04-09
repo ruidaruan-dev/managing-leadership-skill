@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { useLeaderNetwork } from '@/hooks/useLeaderNetwork'
 import { ARCHETYPES } from '@/data/archetypes'
 import type { LeaderNode, InteractionTask, RelationshipLevel, InteractionGoal, TaskPriority } from '@/types/network'
@@ -955,11 +955,19 @@ function DashboardView({
 
 type NetworkTab = 'dashboard' | 'leaders'
 
-export default function RelationshipNetwork({ onNavigateToDrafter }: { onNavigateToDrafter?: (archetypeId: number, leaderName: string, scenarioId?: string) => void }) {
+export default function RelationshipNetwork({ onNavigateToDrafter, preselectedArchetypeId }: { onNavigateToDrafter?: (archetypeId: number, leaderName: string, scenarioId?: string) => void; preselectedArchetypeId?: number }) {
   const { leaders, tasks, addLeader, updateLeader, deleteLeader, addTask, completeTask, deleteTask } = useLeaderNetwork()
   const [tab, setTab] = useState<NetworkTab>('dashboard')
   const [addingLeader, setAddingLeader] = useState(false)
   const [selectedLeaderId, setSelectedLeaderId] = useState<string | null>(null)
+
+  // 如果有预选的原型ID，自动打开新建表单并预填
+  useEffect(() => {
+    if (preselectedArchetypeId) {
+      setAddingLeader(true)
+      setTab('leaders')
+    }
+  }, [preselectedArchetypeId])
 
   const selectedLeader = selectedLeaderId ? leaders.find(l => l.id === selectedLeaderId) ?? null : null
   const selectedTasks = useMemo(
@@ -1025,8 +1033,11 @@ export default function RelationshipNetwork({ onNavigateToDrafter }: { onNavigat
 
           {addingLeader && (
             <div className="card-dramatic p-5 rounded-xl">
-              <p className="text-xs font-semibold text-[hsl(var(--gold))] mb-3 uppercase tracking-wider">🎭 新建领导档案</p>
+              <p className="text-xs font-semibold text-[hsl(var(--gold))] mb-3 uppercase tracking-wider">
+                {preselectedArchetypeId ? '🎭 根据原型快速建档' : '🎭 新建领导档案'}
+              </p>
               <LeaderForm
+                initial={preselectedArchetypeId ? { archetypeId: preselectedArchetypeId } : undefined}
                 onSubmit={data => { addLeader(data); setAddingLeader(false) }}
                 onCancel={() => setAddingLeader(false)}
               />

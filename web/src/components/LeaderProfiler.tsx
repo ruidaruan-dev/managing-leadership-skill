@@ -40,10 +40,12 @@ function ArchetypeDetailModal({
   archetype,
   onClose,
   onTame,
+  onCreateProfile,
 }: {
   archetype: LeaderArchetype
   onClose: () => void
   onTame: (id: number) => void
+  onCreateProfile?: (id: number) => void
 }) {
   return (
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center" onClick={onClose}>
@@ -108,19 +110,29 @@ function ArchetypeDetailModal({
           </div>
         </div>
 
-        {/* Action */}
-        <button
-          onClick={() => onTame(archetype.id)}
-          className="btn-gold w-full mt-5 py-2.5 text-sm font-bold rounded-lg"
-        >
-          🐾 养他 — 把这个领导变成你的灵宠
-        </button>
+        {/* Actions */}
+        <div className="space-y-2 mt-5">
+          {onCreateProfile && (
+            <button
+              onClick={() => onCreateProfile(archetype.id)}
+              className="w-full py-2.5 text-sm font-bold rounded-lg border-2 border-[hsl(var(--cyber))] text-[hsl(var(--cyber))] hover:bg-[hsl(var(--cyber)/0.1)] transition-colors cursor-pointer"
+            >
+              📂 我有这种领导 — 给TA建立关系档案
+            </button>
+          )}
+          <button
+            onClick={() => onTame(archetype.id)}
+            className="btn-gold w-full py-2.5 text-sm font-bold rounded-lg"
+          >
+            🐾 养他 — 把这个领导变成你的灵宠
+          </button>
+        </div>
       </div>
     </div>
   )
 }
 
-export default function LeaderProfiler({ onNavigateToPet }: { onNavigateToPet?: (id: number) => void }) {
+export default function LeaderProfiler({ onNavigateToPet, onNavigateToNetwork }: { onNavigateToPet?: (id: number) => void; onNavigateToNetwork?: (id: number) => void }) {
   const [selectedArchetype, setSelectedArchetype] = useState<LeaderArchetype | null>(null)
 
   const archetypeMap = new Map(ARCHETYPES.map(a => [a.id, a]))
@@ -179,6 +191,10 @@ export default function LeaderProfiler({ onNavigateToPet }: { onNavigateToPet?: 
           onTame={(id) => {
             setSelectedArchetype(null)
             onNavigateToPet?.(id)
+          }}
+          onCreateProfile={(id) => {
+            setSelectedArchetype(null)
+            onNavigateToNetwork?.(id)
           }}
         />
       )}

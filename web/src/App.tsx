@@ -16,6 +16,8 @@ export interface CrossModuleContext {
     leaderName: string
     scenarioId?: string // CommunicationDrafter的场景ID
   }
+  // 从领导画像跳转到关系网络的上下文
+  preselectedArchetypeId?: number
 }
 
 const TABS: { id: Tab; label: string; icon: string; desc: string }[] = [
@@ -42,6 +44,14 @@ export default function App() {
       draftContext: { archetypeId, leaderName, scenarioId }
     })
     setActiveTab('drafter')
+  }
+
+  // 从领导画像跳转到关系网络建档
+  const handleNavigateToNetwork = (archetypeId: number) => {
+    setCrossContext({
+      preselectedArchetypeId: archetypeId
+    })
+    setActiveTab('network')
   }
 
   return (
@@ -108,11 +118,11 @@ export default function App() {
 
       {/* Main Content */}
       <main className="container mx-auto px-4 py-8 max-w-5xl">
-        {activeTab === 'profiler' && <LeaderProfiler onNavigateToPet={handleNavigateToPet} />}
+        {activeTab === 'profiler' && <LeaderProfiler onNavigateToPet={handleNavigateToPet} onNavigateToNetwork={handleNavigateToNetwork} />}
         {activeTab === 'scenario' && <ScenarioAnalyzer leaders={useLeaderNetwork().leaders} />}
         {activeTab === 'drafter' && <CommunicationDrafter prefillContext={crossContext.draftContext} />}
         {activeTab === 'pet' && <PetSystem preSelectedId={petPreSelectedId} />}
-        {activeTab === 'network' && <RelationshipNetwork onNavigateToDrafter={handleNavigateToDrafter} />}
+        {activeTab === 'network' && <RelationshipNetwork onNavigateToDrafter={handleNavigateToDrafter} preselectedArchetypeId={crossContext.preselectedArchetypeId} />}
       </main>
 
       {/* Footer */}
