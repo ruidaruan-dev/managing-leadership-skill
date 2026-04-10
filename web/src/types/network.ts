@@ -4,6 +4,13 @@ export type TaskStatus = 'pending' | 'done' | 'cancelled'
 export type TaskPriority = 'high' | 'medium' | 'low'
 export type InteractionOutcome = 'excellent' | 'good' | 'average' | 'poor'
 
+export interface RelationshipHistoryEntry {
+  timestamp: string
+  from: RelationshipLevel
+  to: RelationshipLevel
+  reason?: string
+}
+
 export interface PersonalityTrait {
   key: string
   label: string
@@ -24,6 +31,8 @@ export interface LeaderNode {
   customTraits: PersonalityTrait[]
   createdAt: string
   updatedAt: string
+  // 关系变化历史
+  relationshipHistory: RelationshipHistoryEntry[]
 }
 
 export interface InteractionTask {

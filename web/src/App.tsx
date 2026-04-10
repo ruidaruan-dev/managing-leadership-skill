@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import LeaderProfiler from '@/components/LeaderProfiler'
 import ScenarioAnalyzer from '@/components/ScenarioAnalyzer'
 import CommunicationDrafter from '@/components/CommunicationDrafter'
@@ -29,9 +29,33 @@ const TABS: { id: Tab; label: string; icon: string; desc: string }[] = [
 ]
 
 export default function App() {
-  const [activeTab, setActiveTab] = useState<Tab>('profiler')
+  // Tab状态持久化到localStorage
+  const [activeTab, setActiveTabState] = useState<Tab>(() => {
+    if (typeof window !== 'undefined') {
+      return (localStorage.getItem('app-active-tab') as Tab) || 'network'
+    }
+    return 'network'
+  })
   const [petPreSelectedId, setPetPreSelectedId] = useState<number | null>(null)
   const [crossContext, setCrossContext] = useState<CrossModuleContext>({})
+
+  // 切换Tab时保存到localStorage
+  const setActiveTab = (tab: Tab) => {
+    localStorage.setItem('app-active-tab', tab)
+    setActiveTabState(tab)
+  }
+
+  // 监听新用户引导的导航事件
+  useEffect(() => {
+    const handleNavigate = (e: CustomEvent<string>) => {
+      const targetTab = e.detail as Tab
+      if (['profiler', 'scenario', 'drafter', 'pet', 'network'].includes(targetTab)) {
+        setActiveTab(targetTab)
+      }
+    }
+    window.addEventListener('navigate-to-tab', handleNavigate as EventListener)
+    return () => window.removeEventListener('navigate-to-tab', handleNavigate as EventListener)
+  }, [])
 
   const handleNavigateToPet = (archetypeId: number) => {
     setPetPreSelectedId(archetypeId)

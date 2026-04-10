@@ -1180,11 +1180,104 @@ function DashboardView({
 
 type NetworkTab = 'dashboard' | 'leaders'
 
+// ─── Onboarding Guide ─────────────────────────────────────────────────────────
+
+const ONBOARDING_STEPS = [
+  {
+    icon: '🎭',
+    title: '认识你的领导类型',
+    desc: '先了解不同领导的行为模式和沟通偏好',
+    action: '前往领导画像',
+    target: 'profiler',
+  },
+  {
+    icon: '📂',
+    title: '建立领导关系档案',
+    desc: '为你遇到的领导建立档案，记录互动策略',
+    action: '立即建档',
+    target: 'leaders',
+  },
+  {
+    icon: '⚔️',
+    title: '遇到职场困境时',
+    desc: '来这里分析场景，获取针对性策略',
+    action: '试试场景分析',
+    target: 'scenario',
+  },
+]
+
+function OnboardingGuide({ onDismiss, onStartGuide }: { onDismiss: () => void; onStartGuide: (target: string) => void }) {
+  return (
+    <div className="fixed inset-0 z-[70] flex items-center justify-center" onClick={onDismiss}>
+      <div className="absolute inset-0 bg-black/80" />
+      <div className="relative w-full max-w-md mx-4 bg-card border border-[hsl(var(--gold))] rounded-2xl p-6 animate-slide-up shadow-2xl">
+        <div className="text-center mb-6">
+          <span className="text-4xl mb-3 block">🎯</span>
+          <h2 className="text-xl font-bold text-foreground mb-2">欢迎使用管领导系统</h2>
+          <p className="text-sm text-muted-foreground">三步开始你的向上管理之旅</p>
+        </div>
+
+        <div className="space-y-3 mb-6">
+          {ONBOARDING_STEPS.map((step, i) => (
+            <button
+              key={i}
+              onClick={(e) => { e.stopPropagation(); onStartGuide(step.target) }}
+              className="w-full p-4 rounded-xl border border-border hover:border-[hsl(var(--gold))] hover:bg-[hsl(var(--gold)/0.05)] transition-all text-left group"
+            >
+              <div className="flex items-start gap-3">
+                <span className="text-2xl">{step.icon}</span>
+                <div className="flex-1">
+                  <h3 className="font-semibold text-foreground group-hover:text-[hsl(var(--gold))] transition-colors">{step.title}</h3>
+                  <p className="text-xs text-muted-foreground mt-0.5">{step.desc}</p>
+                </div>
+                <span className="text-xs text-[hsl(var(--gold))] group-hover:translate-x-1 transition-transform">→</span>
+              </div>
+            </button>
+          ))}
+        </div>
+
+        <div className="flex gap-3">
+          <button onClick={onDismiss} className="flex-1 py-2.5 rounded-lg text-sm border border-border text-muted-foreground hover:text-foreground transition-colors cursor-pointer">
+            稍后再说
+          </button>
+          <button onClick={onDismiss} className="flex-1 btn-gold py-2.5 rounded-lg text-sm font-bold cursor-pointer">
+            开始使用
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ─── Main Component ────────────────────────────────────────────────────────────
+
 export default function RelationshipNetwork({ onNavigateToDrafter, preselectedArchetypeId }: { onNavigateToDrafter?: (archetypeId: number, leaderName: string, scenarioId?: string) => void; preselectedArchetypeId?: number }) {
   const { leaders, tasks, addLeader, updateLeader, deleteLeader, addTask, completeTask, deleteTask, logTaskOutcome } = useLeaderNetwork()
   const [tab, setTab] = useState<NetworkTab>('dashboard')
   const [addingLeader, setAddingLeader] = useState(false)
   const [selectedLeaderId, setSelectedLeaderId] = useState<string | null>(null)
+
+  // 新用户引导状态
+  const [showOnboarding, setShowOnboarding] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const hasCompletedOnboarding = localStorage.getItem('has-completed-onboarding')
+      const hasLeaders = leaders.length > 0
+      return !hasCompletedOnboarding && !hasLeaders && !preselectedArchetypeId
+    }
+    return false
+  })
+
+  const handleDismissOnboarding = () => {
+    localStorage.setItem('has-completed-onboarding', 'true')
+    setShowOnboarding(false)
+  }
+
+  const handleStartGuide = (target: string) => {
+    localStorage.setItem('has-completed-onboarding', 'true')
+    setShowOnboarding(false)
+    // 触发全局导航（通过window事件）
+    window.dispatchEvent(new CustomEvent('navigate-to-tab', { detail: target }))
+  }
 
   // 如果有预选的原型ID，自动打开新建表单并预填
   useEffect(() => {
@@ -1214,6 +1307,14 @@ export default function RelationshipNetwork({ onNavigateToDrafter, preselectedAr
 
   return (
     <div className="space-y-5">
+      {/* 新用户引导 */}
+      {showOnboarding && (
+        <OnboardingGuide
+          onDismiss={handleDismissOnboarding}
+          onStartGuide={handleStartGuide}
+        />
+      )}
+
       {/* Sub-tabs */}
       <div className="flex gap-1 border-b border-border">
         {([

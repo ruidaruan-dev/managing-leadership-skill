@@ -1,16 +1,24 @@
 import { useLocalStorage } from './useLocalStorage'
-import type { LeaderNode, InteractionTask, InteractionOutcome } from '@/types/network'
+import type { LeaderNode, InteractionTask, InteractionOutcome, RelationshipHistoryEntry } from '@/types/network'
 
 export function useLeaderNetwork() {
   const [leaders, setLeaders] = useLocalStorage<LeaderNode[]>('leader-network-nodes', [])
   const [tasks, setTasks] = useLocalStorage<InteractionTask[]>('leader-network-tasks', [])
 
   const addLeader = (data: Omit<LeaderNode, 'id' | 'createdAt' | 'updatedAt'>) => {
+    // 初始关系记录
+    const historyEntry: RelationshipHistoryEntry = {
+      timestamp: new Date().toISOString(),
+      from: 'normal',
+      to: data.relationshipLevel,
+      reason: '初始建档',
+    }
     const node: LeaderNode = {
       ...data,
       id: crypto.randomUUID(),
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
+      relationshipHistory: [historyEntry],
     }
     setLeaders(prev => [...prev, node])
     return node
@@ -18,7 +26,20 @@ export function useLeaderNetwork() {
 
   const updateLeader = (id: string, data: Partial<LeaderNode>) => {
     setLeaders(prev =>
-      prev.map(l => l.id === id ? { ...l, ...data, updatedAt: new Date().toISOString() } : l)
+      prev.map(l => {
+        if (l.id !== id) return l
+        const updated = { ...l, ...data, updatedAt: new Date().toISOString() }
+        // 如果关系状态改变，记录历史
+        if (data.relationshipLevel && data.relationshipLevel !== l.relationshipLevel) {
+          const historyEntry: RelationshipHistoryEntry = {
+            timestamp: new Date().toISOString(),
+            from: l.relationshipLevel,
+            to: data.relationshipLevel,
+          }
+          updated.relationshipHistory = [...(l.relationshipHistory || []), historyEntry]
+        }
+        return updated
+      })
     )
   }
 
