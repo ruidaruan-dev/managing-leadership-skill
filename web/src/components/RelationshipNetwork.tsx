@@ -635,16 +635,27 @@ function TaskCard({
 function LeaderCard({
   leader,
   taskCount,
+  tasks,
   onClick,
   onDelete,
 }: {
   leader: LeaderNode
   taskCount: number
+  tasks: InteractionTask[]
   onClick: () => void
   onDelete: () => void
 }) {
   const archetype = leader.archetypeId ? ARCHETYPES.find(a => a.id === leader.archetypeId) : null
   const rel = REL_LEVEL_CONFIG[leader.relationshipLevel]
+
+  // 计算该领导的健康度
+  const healthScore = calculateHealthScore(leader, tasks)
+  const getHealthColor = (score: number) => {
+    if (score >= 80) return 'text-emerald-400'
+    if (score >= 60) return 'text-[hsl(var(--cyber))]'
+    if (score >= 40) return 'text-amber-400'
+    return 'text-red-400'
+  }
 
   return (
     <div
@@ -657,8 +668,14 @@ function LeaderCard({
       >✕</button>
 
       <div className="flex items-start gap-3">
-        <div className="w-12 h-12 rounded-full bg-muted border-2 border-border flex items-center justify-center text-xl shrink-0 group-hover:border-[hsl(var(--gold))] transition-colors">
-          {archetype?.emoji ?? '👤'}
+        <div className="relative">
+          <div className="w-12 h-12 rounded-full bg-muted border-2 border-border flex items-center justify-center text-xl shrink-0 group-hover:border-[hsl(var(--gold))] transition-colors">
+            {archetype?.emoji ?? '👤'}
+          </div>
+          {/* 健康度小圆点 */}
+          <div className={`absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-background border-2 ${getHealthColor(healthScore).replace('text-', 'border-')} flex items-center justify-center`}>
+            <span className={`text-[10px] font-bold ${getHealthColor(healthScore)}`}>{healthScore}</span>
+          </div>
         </div>
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-0.5 flex-wrap">
@@ -877,6 +894,46 @@ function LeaderDetailPanel({
 
 // ─── Dashboard (全局看板) ──────────────────────────────────────────────────────
 
+// 计算单个领导的关系健康度
+function calculateHealthScore(leader: LeaderNode, leaderTasks: InteractionTask[]): number {
+  // 关系状态分 (0-100)
+  const relLevelScores: Record<RelationshipLevel, number> = {
+    close: 100,    // 亲密盟友
+    normal: 70,    // 正常同事
+    cautious: 40,  // 谨慎相处
+    tense: 10,     // 关系紧张
+  }
+  const relScore = relLevelScores[leader.relationshipLevel]
+
+  // 任务完成率分 (0-100)
+  const doneTasks = leaderTasks.filter(t => t.status === 'done')
+  const totalTasks = leaderTasks.length
+  const completionRate = totalTasks > 0 ? (doneTasks.length / totalTasks) * 100 : 50 // 无任务时给50分基准
+
+  // 逾期惩罚 (-30 到 0)
+  const pendingTasks = leaderTasks.filter(t => t.status === 'pending')
+  const overdueTasks = pendingTasks.filter(t => new Date(t.scheduledAt) < new Date())
+  const overduePenalty = totalTasks > 0 ? -(overdueTasks.length / totalTasks) * 30 : 0
+
+  // 互动效果分 (0-100, 如果有outcome记录)
+  const tasksWithOutcome = doneTasks.filter(t => t.outcome)
+  const outcomeScores: Record<string, number> = { excellent: 100, good: 80, average: 50, poor: 20 }
+  const avgOutcomeScore = tasksWithOutcome.length > 0
+    ? tasksWithOutcome.reduce((sum, t) => sum + (outcomeScores[t.outcome!] || 50), 0) / tasksWithOutcome.length
+    : 50 // 无记录时给50分基准
+
+  // 加权计算: 关系40% + 完成率30% + 效果20% + 基础分10%
+  const totalScore = Math.round(
+    relScore * 0.4 +
+    completionRate * 0.3 +
+    avgOutcomeScore * 0.2 +
+    10 + // 基础分
+    overduePenalty
+  )
+
+  return Math.max(0, Math.min(100, totalScore))
+}
+
 function RelStats({ leaders, tasks }: { leaders: LeaderNode[]; tasks: InteractionTask[] }) {
   const pending = tasks.filter(t => t.status === 'pending').length
   const done = tasks.filter(t => t.status === 'done').length
@@ -887,9 +944,36 @@ function RelStats({ leaders, tasks }: { leaders: LeaderNode[]; tasks: Interactio
     return acc
   }, {} as Record<string, number>)
 
+  // 计算平均健康度
+  const avgHealthScore = leaders.length > 0
+    ? Math.round(leaders.reduce((sum, l) => {
+        const leaderTasks = tasks.filter(t => t.leaderId === l.id)
+        return sum + calculateHealthScore(l, leaderTasks)
+      }, 0) / leaders.length)
+    : 0
+
+  // 健康度等级
+  const getHealthLevel = (score: number) => {
+    if (score >= 80) return { label: '健康', color: 'text-emerald-400', bg: 'bg-emerald-400/10', emoji: '💚' }
+    if (score >= 60) return { label: '良好', color: 'text-[hsl(var(--cyber))]', bg: 'bg-[hsl(var(--cyber))/0.1]', emoji: '💙' }
+    if (score >= 40) return { label: '一般', color: 'text-amber-400', bg: 'bg-amber-400/10', emoji: '💛' }
+    return { label: '预警', color: 'text-red-400', bg: 'bg-red-400/10', emoji: '❤️' }
+  }
+
+  const healthLevel = getHealthLevel(avgHealthScore)
+
   return (
     <div className="space-y-3">
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
+        {/* 健康度总览 */}
+        <div className={`card-dramatic p-3 text-center rounded-xl ${healthLevel.bg} border-2 border-current/20`}>
+          <div className="flex items-center justify-center gap-1 mb-1">
+            <span className="text-lg">{healthLevel.emoji}</span>
+            <span className={`text-2xl font-black ${healthLevel.color}`}>{avgHealthScore}</span>
+          </div>
+          <p className="text-[10px] text-muted-foreground">{healthLevel.label}指数</p>
+        </div>
+
         {[
           { label: '关系网络', value: leaders.length, unit: '位', color: 'text-[hsl(var(--cyber))]' },
           { label: '待办任务', value: pending, unit: '项', color: 'text-[hsl(var(--gold))]' },
@@ -1197,6 +1281,7 @@ export default function RelationshipNetwork({ onNavigateToDrafter, preselectedAr
                 key={leader.id}
                 leader={leader}
                 taskCount={taskCountByLeader.get(leader.id) ?? 0}
+                tasks={tasks.filter(t => t.leaderId === leader.id)}
                 onClick={() => setSelectedLeaderId(leader.id)}
                 onDelete={() => {
                   if (confirm(`确定删除「${leader.name}」的档案及全部关联任务？`)) {
